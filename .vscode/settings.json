@@ -1,0 +1,19 @@
+{
+    "omnipascal.delphiInstallationPath": "C:\\Program Files (x86)\\Embarcadero\\Studio\\21.0",
+    "omnipascal.defaultDevelopmentEnvironment": "Delphi",
+    "omnipascal.searchPath": "C:\\Projetos\\Delphi\\iNove\\horse-websocket\\src;C:\\Projetos\\Delphi\\iNove\\horse-websocket\\vendor\\horse\\src;C:\\Projetos\\Delphi\\iNove\\horse-websocket\\vendor\\synapse;C:\\Projetos\\Delphi\\iNove\\horse-websocket\\vendor\\websocket;C:\\Program Files (x86)\\Embarcadero\\Studio\\21.0\\lib\\Win32\\release;C:\\Program Files (x86)\\Embarcadero\\Studio\\21.0\\source\\rtl\\common;C:\\Program Files (x86)\\Embarcadero\\Studio\\21.0\\source\\rtl\\sys;C:\\Program Files (x86)\\Embarcadero\\Studio\\21.0\\source\\vcl;C:\\Program Files (x86)\\Embarcadero\\Studio\\21.0\\source\\fmx",
+    "files.associations": {
+        "*.pas": "objectpascal",
+        "*.dpr": "objectpascal",
+        "*.dpk": "objectpascal",
+        "*.dfm": "objectpascal",
+        "*.inc": "objectpascal"
+    },
+    "editor.tabSize": 2,
+    "editor.wordWrap": "on",
+    "[objectpascal]": {
+        "editor.defaultFormatter": "alefragnani.pascal-formatter",
+        "editor.formatOnSave": false
+    },
+    "delphi.configFile": "no_config_available"
+}

@@ -1,0 +1,11 @@
+=== Horse WebSocket — Echo Server (WS puro) ===
+Horse HTTP : http://localhost:9000/api/ping
+WebSocket  : ws://localhost:9001/ws
+Demo HTML  : abra samples/basic_ws/index.html no browser
+
+[WS] Servidor WebSocket iniciado na porta 9001
+[OK] Servidor iniciado. Ctrl+C para parar.
+[DEBUG] PathInfo: "/socket.io/" | URL: "" | Method: GET | Query: EIO=4&transport=polling
+[MID] Match EIO. PathInfo: /socket.io/
+[MID] EIOVer: 4 | Transport: polling
+[EIO] HandlePollingGET called with SID="" Transport="pollin

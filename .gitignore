@@ -1,0 +1,34 @@
+# Delphi
+*.dcu
+*.ddp
+*.~*
+*.dcp
+*.bpl
+*.dproj.local
+*.identcache
+*.otares
+*.stat
+*.res
+*.exe
+*.dll
+*.ini
+
+# Directories
+**/Win32/
+**/Win64/
+**/Debug/
+**/Release/
+**/__history/
+**/__recovery/
+**/dcu/
+**/bin/
+
+# Horse & Boss
+**/modules/
+boss-lock.json
+
+# AI & Screenshots
+.ai/
+.screenshot/
+.vscode/tasks-old.json
+boss-lock.json

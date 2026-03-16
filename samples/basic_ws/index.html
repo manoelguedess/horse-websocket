@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Horse WebSocket — Echo Demo</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Segoe UI', system-ui, sans-serif;
+      background: #0f1117;
+      color: #e2e8f0;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+    .card {
+      background: #1a1d2e;
+      border: 1px solid #2d3748;
+      border-radius: 12px;
+      padding: 28px;
+      width: 100%;
+      max-width: 640px;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.4);
+    }
+    h1 { font-size: 1.4rem; margin-bottom: 4px; color: #7c3aed; }
+    .subtitle { color: #64748b; font-size: 0.85rem; margin-bottom: 20px; }
+    .status-bar {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 14px;
+      border-radius: 8px;
+      background: #0f1117;
+      margin-bottom: 16px;
+      font-size: 0.85rem;
+    }
+    .dot {
+      width: 10px; height: 10px;
+      border-radius: 50%;
+      background: #ef4444;
+      transition: background 0.3s;
+    }
+    .dot.connected { background: #22c55e; animation: pulse 2s infinite; }
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.4; }
+    }
+    #log {
+      background: #0a0d14;
+      border: 1px solid #1e293b;
+      border-radius: 8px;
+      padding: 14px;
+      height: 280px;
+      overflow-y: auto;
+      font-family: 'Courier New', monospace;
+      font-size: 0.82rem;
+      line-height: 1.6;
+      margin-bottom: 16px;
+    }
+    .msg { color: #94a3b8; }
+    .msg.sent { color: #60a5fa; }
+    .msg.recv { color: #4ade80; }
+    .msg.sys  { color: #f59e0b; font-style: italic; }
+    .msg.err  { color: #f87171; }
+    .input-row {
+      display: flex;
+      gap: 8px;
+    }
+    input[type=text] {
+      flex: 1;
+      background: #0f1117;
+      border: 1px solid #334155;
+      border-radius: 8px;
+      padding: 10px 14px;
+      color: #e2e8f0;
+      font-size: 0.9rem;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+    input[type=text]:focus { border-color: #7c3aed; }
+    button {
+      padding: 10px 20px;
+      border-radius: 8px;
+      border: none;
+      cursor: pointer;
+      font-weight: 600;
+      font-size: 0.9rem;
+      transition: opacity 0.2s, transform 0.1s;
+    }
+    button:active { transform: scale(0.97); }
+    #btnSend {
+      background: #7c3aed;
+      color: white;
+    }
+    #btnSend:disabled {
+      background: #374151;
+      cursor: not-allowed;
+    }
+    #btnConnect {
+      background: #22c55e;
+      color: #0a0d14;
+      margin-bottom: 16px;
+      width: 100%;
+      padding: 12px;
+    }
+    #btnConnect.disconnect { background: #ef4444; color: white; }
+    .config-row {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 12px;
+    }
+    .config-row label { font-size: 0.8rem; color: #64748b; align-self: center; white-space: nowrap; }
+    .config-row input {
+      flex: 1;
+      background: #0f1117;
+      border: 1px solid #334155;
+      border-radius: 6px;
+      padding: 6px 10px;
+      color: #e2e8f0;
+      font-size: 0.85rem;
+    }
+    .footer { margin-top: 12px; text-align: center; font-size: 0.75rem; color: #475569; }
+    .badge {
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: 99px;
+      font-size: 0.7rem;
+      font-weight: 700;
+      background: #1e293b;
+      color: #7c3aed;
+      margin-left: 8px;
+    }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h1>🐴 Horse WebSocket <span class="badge">RFC 6455</span></h1>
+    <p class="subtitle">WebSocket puro — JS nativo, sem libs externas</p>
+
+    <div class="config-row">
+      <label>URL WS:</label>
+      <input type="text" id="wsUrl" value="ws://localhost:9001/ws">
+    </div>
+
+    <button id="btnConnect" onclick="toggleConnect()">Conectar</button>
+
+    <div class="status-bar">
+      <div class="dot" id="dot"></div>
+      <span id="statusText">Desconectado</span>
+      <span id="clientId" style="margin-left:auto;color:#475569;font-size:0.75rem;"></span>
+    </div>
+
+    <div id="log"></div>
+
+    <div class="input-row">
+      <input type="text" id="msgInput" placeholder="Digite uma mensagem..." disabled
+             onkeydown="if(event.key==='Enter') sendMsg()">
+      <button id="btnSend" disabled onclick="sendMsg()">Enviar</button>
+    </div>
+
+    <p class="footer">
+      Servidor Horse: <a href="http://localhost:9000/api/ping" style="color:#7c3aed" target="_blank">localhost:9000</a>
+      &bull; WS: localhost:9001
+    </p>
+  </div>
+
+  <script>
+    let ws = null;
+
+    function log(msg, type='msg') {
+      const el = document.getElementById('log');
+      const line = document.createElement('div');
+      line.className = 'msg ' + type;
+      const time = new Date().toLocaleTimeString();
+      line.textContent = `[${time}] ${msg}`;
+      el.appendChild(line);
+      el.scrollTop = el.scrollHeight;
+    }
+
+    function toggleConnect() {
+      if (ws && ws.readyState === WebSocket.OPEN) {
+        ws.close();
+        return;
+      }
+      const url = document.getElementById('wsUrl').value.trim();
+      log('Conectando em ' + url + '...', 'sys');
+      try {
+        ws = new WebSocket(url);
+      } catch(e) {
+        log('Erro ao criar WebSocket: ' + e.message, 'err');
+        return;
+      }
+
+      ws.onopen = () => {
+        log('Conectado ao servidor!', 'sys');
+        document.getElementById('dot').classList.add('connected');
+        document.getElementById('statusText').textContent = 'Conectado';
+        document.getElementById('btnConnect').textContent = 'Desconectar';
+        document.getElementById('btnConnect').classList.add('disconnect');
+        document.getElementById('msgInput').disabled = false;
+        document.getElementById('btnSend').disabled = false;
+      };
+
+      ws.onmessage = (e) => {
+        log('← ' + e.data, 'recv');
+      };
+
+      ws.onclose = (e) => {
+        log(`Desconectado (code: ${e.code})`, 'sys');
+        document.getElementById('dot').classList.remove('connected');
+        document.getElementById('statusText').textContent = 'Desconectado';
+        document.getElementById('btnConnect').textContent = 'Conectar';
+        document.getElementById('btnConnect').classList.remove('disconnect');
+        document.getElementById('msgInput').disabled = true;
+        document.getElementById('btnSend').disabled = true;
+        document.getElementById('clientId').textContent = '';
+        ws = null;
+      };
+
+      ws.onerror = (e) => {
+        log('Erro WebSocket!', 'err');
+      };
+    }
+
+    function sendMsg() {
+      const inp = document.getElementById('msgInput');
+      const msg = inp.value.trim();
+      if (!msg || !ws || ws.readyState !== WebSocket.OPEN) return;
+      ws.send(msg);
+      log('→ ' + msg, 'sent');
+      inp.value = '';
+    }
+  </script>
+</body>
+</html>

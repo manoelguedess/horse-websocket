@@ -1,0 +1,141 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "Delphi: Compilar DEBUG",
+            "type": "shell",
+            "options": {
+                "shell": {
+                    "executable": "cmd.exe",
+                    "args": [
+                        "/c"
+                    ]
+                }
+            },
+            "command": "call \"C:\\Program Files (x86)\\Embarcadero\\Studio\\21.0\\bin\\rsvars.bat\" && msbuild \"${workspaceFolder}\\samples\\basic_ws\\BasicWsServer.dproj\" /p:Config=Debug /p:Platform=Win32 /t:Build /v:normal",
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },
+            "problemMatcher": {
+                "owner": "delphi",
+                "fileLocation": [
+                    "absolute"
+                ],
+                "pattern": {
+                    "regexp": "^(.*\\.pas)\\((\\d+),(\\d+)\\):\\s+(Fatal|Error|Warning|Hint):\\s+(.*)$",
+                    "file": 1,
+                    "line": 2,
+                    "column": 3,
+                    "severity": 4,
+                    "message": 5
+                }
+            },
+            "presentation": {
+                "echo": true,
+                "reveal": "always",
+                "focus": false,
+                "panel": "shared",
+                "clear": true
+            }
+        },
+        {
+            "label": "Delphi: Compilar RELEASE",
+            "type": "shell",
+            "options": {
+                "shell": {
+                    "executable": "cmd.exe",
+                    "args": [
+                        "/c"
+                    ]
+                }
+            },
+            "command": "call \"C:\\Program Files (x86)\\Embarcadero\\Studio\\21.0\\bin\\rsvars.bat\" && msbuild \"${workspaceFolder}\\samples\\basic_ws\\BasicWsServer.dproj\" /p:Config=Release /p:Platform=Win32 /t:Build /v:normal",
+            "group": "build",
+            "problemMatcher": {
+                "owner": "delphi",
+                "fileLocation": [
+                    "absolute"
+                ],
+                "pattern": {
+                    "regexp": "^(.*\\.pas)\\((\\d+),(\\d+)\\):\\s+(Fatal|Error|Warning|Hint):\\s+(.*)$",
+                    "file": 1,
+                    "line": 2,
+                    "column": 3,
+                    "severity": 4,
+                    "message": 5
+                }
+            },
+            "presentation": {
+                "echo": true,
+                "reveal": "always",
+                "focus": false,
+                "panel": "shared",
+                "clear": true
+            }
+        },
+        {
+            "label": "Delphi: server-basic_ws DEBUG",
+            "type": "shell",
+            "options": {
+                "shell": {
+                    "executable": "cmd.exe",
+                    "args": [
+                        "/c"
+                    ]
+                }
+            },
+            "command": "call \"C:\\Program Files (x86)\\Embarcadero\\Studio\\21.0\\bin\\rsvars.bat\" && msbuild \"${workspaceFolder}\\samples\\server\\delphi\\basic_ws\\BasicWsServer.dproj\" /p:Config=Debug /p:Platform=Win32 /t:Build /v:normal",
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },
+            "problemMatcher": {
+                "owner": "delphi",
+                "fileLocation": [
+                    "absolute"
+                ],
+                "pattern": {
+                    "regexp": "^(.*\\.pas)\\((\\d+),(\\d+)\\):\\s+(Fatal|Error|Warning|Hint):\\s+(.*)$",
+                    "file": 1,
+                    "line": 2,
+                    "column": 3,
+                    "severity": 4,
+                    "message": 5
+                }
+            },
+            "presentation": {
+                "echo": true,
+                "reveal": "always",
+                "focus": false,
+                "panel": "shared",
+                "clear": true
+            }
+        },
+
+
+        {
+            "label": "Delphi: Clean",
+            "type": "shell",
+            "options": {
+                "shell": {
+                    "executable": "cmd.exe",
+                    "args": [
+                        "/c"
+                    ]
+                }
+            },
+            "command": "call \"C:\\Program Files (x86)\\Embarcadero\\Studio\\21.0\\bin\\rsvars.bat\" && msbuild \"${workspaceFolder}\\samples\\basic_ws\\BasicWsServer.dproj\" /p:Config=Debug /p:Platform=Win32 /t:Clean",
+            "group": "build",
+            "problemMatcher": []
+        },
+        {
+            "label": "Delphi: Executar",
+            "type": "shell",
+            "command": "${workspaceFolder}\\samples\\basic_ws\\Win32\\Debug\\BasicWsServer.exe",
+            "group": "test",
+            "dependsOn": "Delphi: Compilar DEBUG",
+            "problemMatcher": []
+        }
+    ]
+}

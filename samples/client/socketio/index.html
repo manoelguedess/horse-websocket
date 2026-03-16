@@ -1,0 +1,378 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Horse WebSocket — Socket.IO Chat</title>
+    <script src="https://cdn.socket.io/4.8.1/socket.io.min.js"></script>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Segoe UI', system-ui, sans-serif;
+            background: #0f1117;
+            color: #e2e8f0;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .card {
+            background: #1a1d2e;
+            border: 1px solid #2d3748;
+            border-radius: 12px;
+            padding: 28px;
+            width: 100%;
+            max-width: 700px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4);
+        }
+
+        h1 {
+            font-size: 1.4rem;
+            margin-bottom: 4px;
+            color: #0ea5e9;
+        }
+
+        .subtitle {
+            color: #64748b;
+            font-size: 0.85rem;
+            margin-bottom: 20px;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 99px;
+            font-size: 0.7rem;
+            font-weight: 700;
+            background: #0c2a42;
+            color: #0ea5e9;
+            margin-left: 8px;
+        }
+
+        .status-bar {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 14px;
+            border-radius: 8px;
+            background: #0f1117;
+            margin-bottom: 16px;
+            font-size: 0.85rem;
+        }
+
+        .dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: #ef4444;
+            transition: background 0.3s;
+        }
+
+        .dot.connected {
+            background: #22c55e;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+
+            0%,
+            100% {
+                opacity: 1;
+            }
+
+            50% {
+                opacity: 0.4;
+            }
+        }
+
+        #chat {
+            background: #0a0d14;
+            border: 1px solid #1e293b;
+            border-radius: 8px;
+            padding: 14px;
+            height: 320px;
+            overflow-y: auto;
+            font-size: 0.85rem;
+            line-height: 1.7;
+            margin-bottom: 16px;
+        }
+
+        .bubble {
+            display: flex;
+            flex-direction: column;
+            margin-bottom: 10px;
+        }
+
+        .bubble.mine {
+            align-items: flex-end;
+        }
+
+        .bubble .sender {
+            font-size: 0.72rem;
+            color: #475569;
+            margin-bottom: 3px;
+        }
+
+        .bubble .text {
+            background: #1e293b;
+            border-radius: 10px 10px 10px 2px;
+            padding: 8px 12px;
+            max-width: 80%;
+            color: #cbd5e1;
+        }
+
+        .bubble.mine .text {
+            background: #0c2a42;
+            color: #7dd3fc;
+            border-radius: 10px 10px 2px 10px;
+        }
+
+        .bubble.sys .text {
+            background: transparent;
+            color: #f59e0b;
+            font-style: italic;
+            font-size: 0.8rem;
+        }
+
+        .config-row {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 12px;
+        }
+
+        .config-row label {
+            font-size: 0.8rem;
+            color: #64748b;
+            align-self: center;
+            white-space: nowrap;
+        }
+
+        input[type=text] {
+            flex: 1;
+            background: #0f1117;
+            border: 1px solid #334155;
+            border-radius: 8px;
+            padding: 10px 14px;
+            color: #e2e8f0;
+            font-size: 0.9rem;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+
+        input[type=text]:focus {
+            border-color: #0ea5e9;
+        }
+
+        button {
+            padding: 10px 20px;
+            border-radius: 8px;
+            border: none;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 0.9rem;
+            transition: opacity 0.2s, transform 0.1s;
+        }
+
+        button:active {
+            transform: scale(0.97);
+        }
+
+        #btnConnect {
+            background: #22c55e;
+            color: #0a0d14;
+            margin-bottom: 16px;
+            width: 100%;
+            padding: 12px;
+        }
+
+        #btnConnect.disconnect {
+            background: #ef4444;
+            color: white;
+        }
+
+        .input-row {
+            display: flex;
+            gap: 8px;
+        }
+
+        #btnSend {
+            background: #0ea5e9;
+            color: white;
+        }
+
+        #btnSend:disabled {
+            background: #374151;
+            cursor: not-allowed;
+        }
+
+        .participants {
+            font-size: 0.75rem;
+            color: #475569;
+            margin-top: 10px;
+            text-align: right;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="card">
+        <h1>🐴 Horse WebSocket <span class="badge">Socket.IO v4</span></h1>
+        <p class="subtitle">Chat room em tempo real — protocolo Socket.IO sobre Engine.IO v4</p>
+
+        <div class="config-row">
+            <label>Servidor:</label>
+            <input type="text" id="sioUrl" value="http://localhost:9000">
+            <label>Apelido:</label>
+            <input type="text" id="nickInput" value="Usuário" style="max-width:140px">
+        </div>
+
+        <button id="btnConnect" onclick="toggleConnect()">Conectar</button>
+
+        <div class="status-bar">
+            <div class="dot" id="dot"></div>
+            <span id="statusText">Desconectado</span>
+            <span id="sid" style="margin-left:auto;color:#475569;font-size:0.72rem;"></span>
+        </div>
+
+        <div id="chat"></div>
+
+        <div class="input-row">
+            <input type="text" id="msgInput" placeholder="Digite uma mensagem..." disabled
+                onkeydown="if(event.key==='Enter') sendMsg()">
+            <button id="btnSend" disabled onclick="sendMsg()">Enviar</button>
+        </div>
+
+        <div class="participants" id="participants">0 participantes</div>
+    </div>
+
+    <script>
+        let socket = null;
+        let participantCount = 0;
+
+        function addBubble(text, type = 'other', sender = '') {
+            const chat = document.getElementById('chat');
+            const bubble = document.createElement('div');
+            bubble.className = 'bubble ' + type;
+            if (sender && type !== 'sys') {
+                const senderEl = document.createElement('div');
+                senderEl.className = 'sender';
+                senderEl.textContent = sender;
+                bubble.appendChild(senderEl);
+            }
+            const textEl = document.createElement('div');
+            textEl.className = 'text';
+            textEl.textContent = text;
+            bubble.appendChild(textEl);
+            chat.appendChild(bubble);
+            chat.scrollTop = chat.scrollHeight;
+        }
+
+        function toggleConnect() {
+            if (socket && socket.connected) {
+                socket.disconnect();
+                return;
+            }
+
+            const url = document.getElementById('sioUrl').value.trim();
+            const nick = document.getElementById('nickInput').value.trim() || 'Anônimo';
+
+            if (url.startsWith('ws://') || url.startsWith('wss://')) {
+                alert('Atenção: Para Socket.IO, você deve usar a URL HTTP (ex: http://localhost:9000) e não a URL do WebSocket nativo. O Socket.IO gerencia o upgrade para WS internamente.');
+                return;
+            }
+
+            addBubble('Conectando em ' + url + '...', 'sys');
+
+            socket = io(url, {
+                transports: ['polling'],
+                auth: { nick }
+            });
+
+            socket.on('connect', () => {
+                addBubble('✓ Conectado! ID: ' + socket.id, 'sys');
+                document.getElementById('dot').classList.add('connected');
+                document.getElementById('statusText').textContent = 'Conectado como ' + nick;
+                document.getElementById('sid').textContent = socket.id;
+                document.getElementById('btnConnect').textContent = 'Desconectar';
+                document.getElementById('btnConnect').classList.add('disconnect');
+                document.getElementById('msgInput').disabled = false;
+                document.getElementById('btnSend').disabled = false;
+                participantCount++;
+                updateParticipants();
+            });
+
+            socket.on('chat message', (data) => {
+                try {
+                    const obj = typeof data === 'string' ? JSON.parse(data) : data;
+                    const nick_ = obj.nick || 'Desconhecido';
+                    const msg = obj.msg || data;
+                    addBubble(msg, nick_ === nick ? 'mine' : 'other', nick_);
+                } catch {
+                    addBubble(data, 'other', 'servidor');
+                }
+            });
+
+            socket.on('user joined', (data) => {
+                participantCount++;
+                updateParticipants();
+                addBubble('Novo participante entrou', 'sys');
+            });
+
+            socket.on('user disconnected', (data) => {
+                if (participantCount > 0) participantCount--;
+                updateParticipants();
+                addBubble('Um participante saiu', 'sys');
+            });
+
+            socket.on('pong', (data) => {
+                addBubble('Pong do servidor (' + data + ')', 'sys');
+            });
+
+            socket.on('disconnect', (reason) => {
+                addBubble('Desconectado: ' + reason, 'sys');
+                document.getElementById('dot').classList.remove('connected');
+                document.getElementById('statusText').textContent = 'Desconectado';
+                document.getElementById('btnConnect').textContent = 'Conectar';
+                document.getElementById('btnConnect').classList.remove('disconnect');
+                document.getElementById('msgInput').disabled = true;
+                document.getElementById('btnSend').disabled = true;
+                document.getElementById('sid').textContent = '';
+                socket = null;
+                participantCount = 0;
+                updateParticipants();
+            });
+
+            socket.on('connect_error', (err) => {
+                addBubble('Erro de conexão: ' + err.message, 'sys');
+            });
+        }
+
+        function updateParticipants() {
+            document.getElementById('participants').textContent =
+                participantCount + ' participante(s)';
+        }
+
+        function sendMsg() {
+            const inp = document.getElementById('msgInput');
+            const nick = document.getElementById('nickInput').value.trim() || 'Anônimo';
+            const msg = inp.value.trim();
+            if (!msg || !socket || !socket.connected) return;
+
+            const payload = JSON.stringify({ nick, msg });
+            socket.emit('chat message', payload);
+            addBubble(msg, 'mine', nick);
+            inp.value = '';
+        }
+    </script>
+</body>
+
+</html>
