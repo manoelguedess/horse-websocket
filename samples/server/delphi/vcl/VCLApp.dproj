@@ -85,7 +85,7 @@
         <DCC_RemoteDebug>false</DCC_RemoteDebug>
         <AppEnableRuntimeThemes>true</AppEnableRuntimeThemes>
         <AppDPIAwarenessMode>PerMonitorV2</AppDPIAwarenessMode>
-        <DCC_UnitSearchPath>..\..\..\modules\.dcp;..\..\..\modules\.dcu;..\..\..\modules;..\..\..\modules\horse\src;..\..\..\modules\jhonson\src;..\..\..\..\src;..\..\..\..\vendor\synapse;..\..\..\..\vendor\websocket;$(DCC_UnitSearchPath)</DCC_UnitSearchPath>
+        <DCC_UnitSearchPath>..\..\..\modules\.dcp;..\..\..\modules\.dcu;..\..\..\modules;..\..\..\modules\horse\src;..\..\..\modules\jhonson\src;..\..\..\..\src;..\..\..\..\vendor\synapse;..\..\..\..\vendor\websocket;..\..\..\..\src\vendor\synapse;..\..\..\..\src\vendor\websocket;$(DCC_UnitSearchPath)</DCC_UnitSearchPath>
         <VerInfo_IncludeVerInfo>true</VerInfo_IncludeVerInfo>
         <VerInfo_Locale>1033</VerInfo_Locale>
     </PropertyGroup>
