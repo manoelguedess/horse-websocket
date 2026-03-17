@@ -1,9 +1,0 @@
-[submodule "vendor/websocket.pas"]
-	path = vendor/websocket.pas
-	url = https://github.com/biot2/WebSocket.pas.git
-[submodule "vendor/synapse"]
-	path = vendor/synapse
-	url = https://github.com/geby/synapse.git
-[submodule "vendor/horse"]
-	path = vendor/horse
-	url = https://github.com/HashLoad/horse.git
