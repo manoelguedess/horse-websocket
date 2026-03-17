@@ -104,6 +104,12 @@ type
     // Inicia o timer de heartbeat (chamado uma vez pelo middleware)
     procedure StartHeartbeatTimer;
 
+    // Para o timer de heartbeat (permite reinício posterior)
+    procedure StopHeartbeatTimer;
+
+    // Limpa todas as sessões ativas (sem disparar callbacks)
+    procedure ClearSessions;
+
     // Callbacks
     property OnEIOConnect    : TWSOnConnect    read FOnEIOConnect    write FOnEIOConnect;
     property OnEIODisconnect : TWSOnDisconnect read FOnEIODisconnect write FOnEIODisconnect;
@@ -188,11 +194,26 @@ begin
 end;
 
 destructor TEngineIOManager.Destroy;
+begin
+  StopHeartbeatTimer;
+  ClearSessions;
+  FSessions.Free;
+  FLock.Free;
+  inherited;
+end;
+
+procedure TEngineIOManager.StopHeartbeatTimer;
+begin
+  if not FHeartbeatStarted then Exit;
+  FHeartbeatStop := True;
+  Sleep(150); // espera a thread de heartbeat perceber o stop
+  FHeartbeatStarted := False;
+end;
+
+procedure TEngineIOManager.ClearSessions;
 var
   Pair: TPair<string, TEngineIOSessionObj>;
 begin
-  FHeartbeatStop := True;
-  Sleep(100); // espera a thread de heartbeat perceber o stop
   FLock.Enter;
   try
     for Pair in FSessions do
@@ -201,9 +222,6 @@ begin
   finally
     FLock.Leave;
   end;
-  FSessions.Free;
-  FLock.Free;
-  inherited;
 end;
 
 procedure TEngineIOManager.SetSendWSFunction(Fn: TProc<string, string>);
@@ -295,6 +313,7 @@ var
 begin
   if FHeartbeatStarted then Exit;
   FHeartbeatStarted := True;
+  FHeartbeatStop    := False;   // garante que a flag está limpa (importante no restart)
   Manager := Self;
 
   TThread.CreateAnonymousThread(

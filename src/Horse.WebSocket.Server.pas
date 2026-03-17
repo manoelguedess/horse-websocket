@@ -60,6 +60,7 @@ type
     destructor  Destroy; override;
     procedure   Add(const ID: TWSClientID; Client: IWSClient);
     procedure   Remove(const ID: TWSClientID);
+    procedure   Clear;
     function    TryGet(const ID: TWSClientID; out Client: IWSClient): Boolean;
     function    GetAll: TArray<IWSClient>;
     function    Count: Integer;
@@ -100,7 +101,9 @@ type
     procedure SendBinaryTo(const ClientID: TWSClientID; const Data: TBytes);
     procedure Broadcast(const Msg: string);
     procedure BroadcastBinary(const Data: TBytes);
+    procedure BroadcastAll(const Msg: string);
     procedure DisconnectClient(const ID: TWSClientID);
+    procedure ClearAll;
     function  GetClients: TArray<IWSClient>;
     function  GetClient(const ID: TWSClientID): IWSClient;
     function  ClientCount: Integer;
@@ -250,6 +253,16 @@ begin
   end;
 end;
 
+procedure THorseWSClientMap.Clear;
+begin
+  FLock.Enter;
+  try
+    FMap.Clear;
+  finally
+    FLock.Leave;
+  end;
+end;
+
 function THorseWSClientMap.TryGet(const ID: TWSClientID; out Client: IWSClient): Boolean;
 begin
   FLock.Enter;
@@ -372,7 +385,7 @@ var
 begin
   Clients := FClients.GetAll;
   for C in Clients do
-    if C.IsConnected then
+    if C.IsConnected and (C.GetProtocol = wpmRaw) then
       C.SendText(Msg);
 end;
 
@@ -383,8 +396,19 @@ var
 begin
   Clients := FClients.GetAll;
   for C in Clients do
-    if C.IsConnected then
+    if C.IsConnected and (C.GetProtocol = wpmRaw) then
       C.SendBinary(Data);
+end;
+
+procedure THorseWSServer.BroadcastAll(const Msg: string);
+var
+  Clients: TArray<IWSClient>;
+  C: IWSClient;
+begin
+  Clients := FClients.GetAll;
+  for C in Clients do
+    if C.IsConnected then
+      C.SendText(Msg);
 end;
 
 procedure THorseWSServer.DisconnectClient(const ID: TWSClientID);
@@ -409,6 +433,11 @@ end;
 function THorseWSServer.ClientCount: Integer;
 begin
   Result := FClients.Count;
+end;
+
+procedure THorseWSServer.ClearAll;
+begin
+  FClients.Clear;
 end;
 
 initialization

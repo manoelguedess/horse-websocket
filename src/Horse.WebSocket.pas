@@ -64,6 +64,7 @@ type
     CertPassword : string;   // senha do PFX
     WSPort       : Integer;  // porta WS (0 = mesma porta do Horse)
     WSSPort      : Integer;  // porta WSS quando TLS habilitado (default: porta+1 ou 443)
+    AutoStart    : Boolean;  // se True, inicia o servidor WS ao registrar o middleware (default: True)
   end;
 
   THorseWebSocketMiddleware = class;
@@ -130,6 +131,7 @@ type
     procedure SetupEngineIOCallbacks;
     procedure SetupSocketIOCallbacks;
     procedure StartBiotServer;
+    procedure StopBiotServer;
 
   public
     constructor Create;
@@ -142,6 +144,11 @@ type
 
     // Retorna o middleware Horse (proc que será passado ao THorse.Use)
     function  GetMiddleware: THorseCallback;
+
+    // Inicia o servidor WebSocket (RFC 6455 + Engine.IO heartbeat)
+    procedure StartServer;
+    // Para o servidor WebSocket e limpa sessões/clientes (preserva handlers)
+    procedure StopServer;
 
     // Acesso ao gerenciador de clientes (para o dev usar externamente)
     function  Clients: TWebSocketServer;
@@ -166,6 +173,12 @@ function SocketIO: TSocketIOManager;
 
 // Acesso ao Engine.IO
 function EngineIO: TEngineIOManager;
+
+// Inicia o servidor WebSocket manualmente (quando AutoStart = False)
+procedure HorseWebSocketStart;
+
+// Para o servidor WebSocket manualmente
+procedure HorseWebSocketStop;
 
 // Config padrão
 function DefaultWSConfig: THorseWebSocketConfig;
@@ -195,6 +208,7 @@ begin
   Result.CertPassword  := '';
   Result.WSPort        := 0;    // 0 = separado na porta 9001 (configurável)
   Result.WSSPort       := 0;
+  Result.AutoStart     := True;  // compatível com comportamento anterior
 end;
 
 // ============================================================================
@@ -401,14 +415,7 @@ end;
 
 destructor THorseWebSocketMiddleware.Destroy;
 begin
-  if Assigned(FBiotServer) then
-  begin
-    FBiotServer.CloseAllConnections(wsCloseShutdown, 'Server shutting down');
-    FBiotServer.TerminateThread;
-    FBiotServer.WaitFor;
-    FBiotServer.Free;
-    FBiotServer := nil;
-  end;
+  StopBiotServer;
   inherited;
 end;
 
@@ -499,6 +506,19 @@ begin
   SafeLog('[WS] Servidor WebSocket iniciado na porta ' + IntToStr(FBiotPort));
 end;
 
+procedure THorseWebSocketMiddleware.StopBiotServer;
+begin
+  if not Assigned(FBiotServer) then Exit;
+  try
+    FBiotServer.CloseAllConnections(wsCloseShutdown, 'Server shutting down');
+    FBiotServer.TerminateThread;
+    FBiotServer.WaitFor;
+  except
+    // ignora erros durante shutdown
+  end;
+  FreeAndNil(FBiotServer);
+end;
+
 function THorseWebSocketMiddleware.GetMiddleware: THorseCallback;
 var
   Self2: THorseWebSocketMiddleware;
@@ -508,10 +528,14 @@ begin
   // Setup callbacks (idempotente)
   SetupEngineIOCallbacks;
   SetupSocketIOCallbacks;
-  StartBiotServer;
 
-  // Inicia timer de heartbeat Engine.IO (uma única vez)
-  FEIOMan.StartHeartbeatTimer;
+  // Inicia servidores apenas se AutoStart estiver habilitado
+  if FConfig.AutoStart then
+  begin
+    StartBiotServer;
+    // Inicia timer de heartbeat Engine.IO (uma única vez)
+    FEIOMan.StartHeartbeatTimer;
+  end;
 
   Result :=
     procedure(Req: THorseRequest; Res: THorseResponse; Next: TNextProc)
@@ -588,6 +612,24 @@ begin
   Result := FSIOMan;
 end;
 
+procedure THorseWebSocketMiddleware.StartServer;
+begin
+  SetupEngineIOCallbacks;
+  SetupSocketIOCallbacks;
+  StartBiotServer;
+  FEIOMan.StartHeartbeatTimer;
+end;
+
+procedure THorseWebSocketMiddleware.StopServer;
+begin
+  FEIOMan.StopHeartbeatTimer;
+  StopBiotServer;
+  FEIOMan.ClearSessions;
+  FWSServer.ClearAll;
+  FSIOMan.DisconnectAllClients;
+  SafeLog('[WS] Servidor WebSocket parado');
+end;
+
 // ============================================================================
 // Funções públicas
 // ============================================================================
@@ -616,6 +658,16 @@ end;
 function EngineIO: TEngineIOManager;
 begin
   Result := TEngineIOManager.Instance;
+end;
+
+procedure HorseWebSocketStart;
+begin
+  THorseWebSocketMiddleware.GetInstance.StartServer;
+end;
+
+procedure HorseWebSocketStop;
+begin
+  THorseWebSocketMiddleware.GetInstance.StopServer;
 end;
 
 initialization

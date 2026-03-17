@@ -1,4 +1,4 @@
-(*******************************************************************************************
+﻿(*******************************************************************************************
 
 ## dependencies
 - https://github.com/HashLoad/horse
@@ -83,6 +83,18 @@ procedure TfrmMain.FormCreate(Sender: TObject);
 begin
   edtPort.Text := '9000';
   MemoLog.Clear;
+  {$REGION 'MemoLog'}
+  MemoLog.Lines.Add('=== Horse WebSocket — Echo Server (WS puro & Socket.IO) ===');
+  MemoLog.Lines.Add('Horse HTTP          : curl http://localhost:9000/api/ping');
+  MemoLog.Lines.Add('WebSocket           : ws://localhost:9001/ws');
+  MemoLog.Lines.Add('Demo RFC6455 HTML   : abra samples/client/rfc6455/index.html no browser');
+  MemoLog.Lines.Add('Demo SocketIO HTML  : abra samples/client/socketio/index.html no browser');
+  MemoLog.Lines.Add('Envia mensagem p/ todos os clientes conectados (Broadcast):');
+  MemoLog.Lines.Add(' curl -X POST -H "Content-Type: application/json" http://localhost:9000/api/sendmessage -d "{\"msg\":\"pagamento efetuado\"}" ');
+  MemoLog.Lines.Add('');
+  {$ENDREGION}
+
+
 
   // Configura callbacks do WebSocket "UWebSocket.initialization"
   WS := WSClients;
@@ -94,6 +106,7 @@ begin
   // Configura o middleware (porta WS separada: 9001)
   Cfg := DefaultWSConfig;
   Cfg.WSPort := 9001;
+  Cfg.AutoStart := False;  // Não iniciar WS ao registrar; inicia no btnStart
 
   THorse.Use(Jhonson);
   THorse.Use(HorseWebSocket(Cfg));
@@ -128,7 +141,7 @@ begin
       if Msg = '' then Msg := 'Mensagem via API HTTP';
       WSClients.Broadcast('[Servidor API] ' + Msg);
 
-      // Interop: envia tamb�m para todos os clientes Socket.IO v4
+      // Interop: envia tamb�m para todos os clientes Socket.IO v4
       SocketIO.Of_('/').Emit('chat message', '"' + EscapeJsonStr('[Servidor API] ' + Msg) + '"');
 
       Res.Send('{"success": true, "message": "Enviado para todos"}');
@@ -140,6 +153,8 @@ end;
 
 procedure TfrmMain.Start;
 begin
+  // Inicia o servidor WebSocket (RFC 6455 + Socket.IO/Engine.IO)
+  HorseWebSocketStart;
   // Need to set "HORSE_VCL" compilation directive
   THorse.Listen(StrToInt(edtPort.Text));
 end;
@@ -154,6 +169,8 @@ end;
 procedure TfrmMain.Stop;
 begin
   THorse.StopListen;
+  // Para o servidor WebSocket e limpa sessões/clientes
+  HorseWebSocketStop;
 end;
 
 end.

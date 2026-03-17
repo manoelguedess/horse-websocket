@@ -1,4 +1,19 @@
-﻿program ConsoleApp;
+﻿(*******************************************************************************************
+
+## dependencies
+- https://github.com/HashLoad/horse
+- https://github.com/geby/synapse
+- https://github.com/Robert-112/Bauglir-WebSocket-2
+
+
+## inpired
+- https://github.com/WillHubner/Horse-SocketIO
+
+
+*******************************************************************************************)
+
+
+program ConsoleApp;
 
 {$APPTYPE CONSOLE}
 
@@ -13,10 +28,13 @@ uses
   consoleapp.websocket in 'consoleapp.websocket.pas';
 
 begin
-  WriteLn('=== Horse WebSocket — Echo Server (WS puro) ===');
-  WriteLn('Horse HTTP : http://localhost:9000/api/ping');
-  WriteLn('WebSocket  : ws://localhost:9001/ws');
-  WriteLn('Demo HTML  : abra samples/basic_ws/index.html no browser');
+  WriteLn('=== Horse WebSocket — Echo Server (WS puro & Socket.IO) ===');
+  WriteLn('Horse HTTP          : curl http://localhost:9000/api/ping');
+  WriteLn('WebSocket           : ws://localhost:9001/ws');
+  WriteLn('Demo RFC6455 HTML   : abra samples/client/rfc6455/index.html no browser');
+  WriteLn('Demo SocketIO HTML  : abra samples/client/socketio/index.html no browser');
+  WriteLn('Envia mensagem p/ todos os clientes conectados (Broadcast):');
+  WriteLn(' curl -X POST -H "Content-Type: application/json" http://localhost:9000/api/sendmessage -d ''{"msg":"pagamento efetuado"}'' ');
   WriteLn('');
 
   // Configura callbacks do WebSocket "UWebSocket.initialization"

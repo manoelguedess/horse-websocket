@@ -66,6 +66,7 @@ type
                            SendFn: TProc<string, string>);  // SendFn(ClientID, Packet)
     procedure AddClient(const ClientID: string);
     procedure RemoveClient(const ClientID: string);
+    procedure ClearClients;
     function  GetClients: TArray<string>;
 
     // API fluida
@@ -118,6 +119,9 @@ type
     // Chamado ao conectar/desconectar um cliente
     procedure HandleConnect(const ClientID, NamespacePath: string);
     procedure HandleDisconnect(const ClientID: string);
+
+    // Remove todos os clientes de todos os namespaces (preserva handlers)
+    procedure DisconnectAllClients;
 
     // Monta um pacote Socket.IO event
     function  BuildEventPacket(const Namespace, EventName, Data: string;
@@ -229,6 +233,16 @@ begin
   FClientsLock.Enter;
   try
     FClients.Remove(ClientID);
+  finally
+    FClientsLock.Leave;
+  end;
+end;
+
+procedure TSocketIONamespace.ClearClients;
+begin
+  FClientsLock.Enter;
+  try
+    FClients.Clear;
   finally
     FClientsLock.Leave;
   end;
@@ -498,6 +512,19 @@ begin
   try
     for Pair in FNamespaces do
       Pair.Value.RemoveClient(ClientID);
+  finally
+    FLock.Leave;
+  end;
+end;
+
+procedure TSocketIOManager.DisconnectAllClients;
+var
+  Pair: TPair<string, TSocketIONamespace>;
+begin
+  FLock.Enter;
+  try
+    for Pair in FNamespaces do
+      Pair.Value.ClearClients;
   finally
     FLock.Leave;
   end;
