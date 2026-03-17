@@ -1,11 +1,13 @@
 {
-  "name": "horse-websocket",
-  "description": "WebSocket middleware for Horse framework",
-  "version": "1.0.0",
-  "homepage": "https://github.com/manoelguedess/horse-websocket",
-  "mainsrc": "src/",
-  "projects": [],
-  "dependencies": {
-    "https://github.com/hashload/horse": "^3.1.9"
-  }
+	"name": "horse-websocket",
+	"description": "WebSocket middleware for Horse framework",
+	"version": "1.0.0",
+	"homepage": "https://github.com/manoelguedess/horse-websocket",
+	"mainsrc": "src/",
+	"projects": [],
+	"dependencies": {
+		"https://github.com/biot2/websocket.pas": "^1.0",
+		"https://github.com/geby/synapse": ">0.0.0",
+		"https://github.com/hashload/horse": "^3.1.9"
+	}
 }
