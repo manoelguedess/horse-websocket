@@ -1,0 +1,11 @@
+{
+  "name": "horse-websocket",
+  "description": "WebSocket middleware for Horse framework",
+  "version": "1.0.0",
+  "homepage": "https://github.com/manoelguedess/horse-websocket",
+  "mainsrc": "src/",
+  "projects": [],
+  "dependencies": {
+    "https://github.com/hashload/horse": "^3.1.9"
+  }
+}

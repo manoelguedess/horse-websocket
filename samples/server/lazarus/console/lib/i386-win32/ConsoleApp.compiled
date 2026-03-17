@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CONFIG>
+  <Compiler Value="K:\dev\laz32\fpc\3.2.2\bin\i386-win32\fpc.exe" Date="1449426723"/>
+  <Params Value=" -MDelphi -Scghi -O1 -g -gl -l -vewnhibq -FiC:\Projetos\Delphi\iNove\horse-websocket\samples\server\lazarus\console\lib\i386-win32 -FuC:\Projetos\Delphi\iNove\horse-websocket\samples\modules\.dcp -FuC:\Projetos\Delphi\iNove\horse-websocket\samples\modules\.dcu -FuC:\Projetos\Delphi\iNove\horse-websocket\samples\modules -FuC:\Projetos\Delphi\iNove\horse-websocket\samples\modules\horse\src -FuC:\Projetos\Delphi\iNove\horse-websocket\samples\modules\jhonson\src -FuC:\Projetos\Delphi\iNove\horse-websocket\src -FuC:\Projetos\Delphi\iNove\horse-websocket\vendor\synapse -FuC:\Projetos\Delphi\iNove\horse-websocket\vendor\websocket -FuC:\Projetos\Delphi\iNove\horse-websocket\samples\server\lazarus\console\ -FUC:\Projetos\Delphi\iNove\horse-websocket\samples\server\lazarus\console\lib\i386-win32\ -FEC:\Projetos\Delphi\iNove\horse-websocket\samples\server\lazarus\console\ -oC:\Projetos\Delphi\iNove\horse-websocket\samples\server\lazarus\console\ConsoleApp.exe ConsoleApp.lpr"/>
+  <Complete Value="False"/>
+</CONFIG>
